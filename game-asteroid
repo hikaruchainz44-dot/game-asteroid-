@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Penghindar Asteroid</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            color: white;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            background: linear-gradient(to right, #4facfe, #00f2fe);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            color: #a1c4fd;
+            margin-bottom: 25px;
+        }
+        
+        .game-container {
+            position: relative;
+            width: 800px;
+            max-width: 95vw;
+            margin-bottom: 20px;
+        }
+        
+        canvas {
+            background-color: #0a1929;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            display: block;
+            margin: 0 auto;
+        }
+        
+        .game-ui {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            width: 800px;
+            max-width: 95vw;
+        }
+        
+        .score-container, .lives-container {
+            background-color: rgba(15, 32, 39, 0.8);
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .score-container {
+            color: #4facfe;
+        }
+        
+        .lives-container {
+            color: #ff6b6b;
+        }
+        
+        .controls {
+            background-color: rgba(15, 32, 39, 0.8);
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            margin-top: 20px;
+            width: 800px;
+            max-width: 95vw;
+        }
+        
+        .controls h3 {
+            color: #a1c4fd;
+            margin-bottom: 10px;
+        }
+        
+        .controls p {
+            color: #cfd9e5;
+            line-height: 1.5;
+        }
+        
+        .controls kbd {
+            background-color: #2c5364;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        
+        .game-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+            width: 800px;
+            max-width: 95vw;
+        }
+        
+        button {
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        #startBtn {
+            background: linear-gradient(to right, #4facfe, #00f2fe);
+            color: #0a1929;
+        }
+        
+        #startBtn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(79, 172, 254, 0.4);
+        }
+        
+        #resetBtn {
+            background: linear-gradient(to right, #ff9a9e, #fad0c4);
+            color: #0a1929;
+        }
+        
+        #resetBtn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(255, 154, 158, 0.4);
+        }
+        
+        .game-over {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.85);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border-radius: 10px;
+            display: none;
+            z-index: 10;
+        }
+        
+        .game-over h2 {
+            font-size: 3.5rem;
+            color: #ff6b6b;
+            margin-bottom: 20px;
+        }
+        
+        .game-over p {
+            font-size: 1.8rem;
+            margin-bottom: 30px;
+            color: #4facfe;
+        }
+        
+        footer {
+            margin-top: 30px;
+            text-align: center;
+            color: #a1c4fd;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 850px) {
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            .game-container, .game-ui, .controls, .game-buttons {
+                width: 95vw;
+            }
+            
+            .score-container, .lives-container, .controls {
+                padding: 12px 20px;
+                font-size: 1.2rem;
+            }
+            
+            canvas {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>PENGHINDAR ASTEROID</h1>
+        <p class="subtitle">Hindari asteroid dan bertahan hidup selama mungkin!</p>
+    </header>
+    
+    <div class="game-container">
+        <canvas id="gameCanvas" width="800" height="500"></canvas>
+        
+        <div class="game-over" id="gameOverScreen">
+            <h2>GAME OVER</h2>
+            <p id="finalScore">Skor: 0</p>
+            <button id="restartBtn">Main Lagi</button>
+        </div>
+    </div>
+    
+    <div class="game-ui">
+        <div class="score-container">
+            <span>Skor: <span id="score">0</span></span>
+        </div>
+        <div class="lives-container">
+            <span>Nyawa: <span id="lives">3</span></span>
+        </div>
+    </div>
+    
+    <div class="controls">
+        <h3>Cara Bermain</h3>
+        <p>Gunakan tombol <kbd>A</kbd> dan <kbd>D</kbd> atau <kbd>←</kbd> dan <kbd>→</kbd> untuk menggerakkan pesawat</p>
+        <p>Hindari asteroid yang jatuh untuk bertahan hidup!</p>
+    </div>
+    
+    <div class="game-buttons">
+        <button id="startBtn">Mulai Game</button>
+        <button id="resetBtn">Reset Game</button>
+    </div>
+    
+    <footer>
+        <p>Dibuat dengan HTML5 Canvas, JavaScript, dan CSS | Game Sederhana untuk Pembelajaran</p>
+    </footer>
+
+    <script>
+        // Elemen DOM
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreElement = document.getElementById('score');
+        const livesElement = document.getElementById('lives');
+        const startBtn = document.getElementById('startBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const restartBtn = document.getElementById('restartBtn');
+        const gameOverScreen = document.getElementById('gameOverScreen');
+        const finalScoreElement = document.getElementById('finalScore');
+        
+        // Variabel game
+        let score = 0;
+        let lives = 3;
+        let gameRunning = false;
+        let gameLoop;
+        let lastTime = 0;
+        
+        // Objek pemain
+        const player = {
+            x: canvas.width / 2 - 25,
+            y: canvas.height - 80,
+            width: 50,
+            height: 60,
+            speed: 8,
+            color: '#4facfe',
+            draw: function() {
+                ctx.fillStyle = this.color;
+                
+                // Badan pesawat
+                ctx.beginPath();
+                ctx.moveTo(this.x + this.width/2, this.y);
+                ctx.lineTo(this.x + this.width, this.y + this.height);
+                ctx.lineTo(this.x, this.y + this.height);
+                ctx.closePath();
+                ctx.fill();
+                
+                // Kokpit pesawat
+                ctx.fillStyle = '#00f2fe';
+                ctx.beginPath();
+                ctx.arc(this.x + this.width/2, this.y + 20, 10, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Mesin pesawat
+                ctx.fillStyle = '#ff9a00';
+                ctx.fillRect(this.x + 15, this.y + this.height - 15, 20, 20);
+            },
+            moveLeft: function() {
+                if (this.x > 0) {
+                    this.x -= this.speed;
+                }
+            },
+            moveRight: function() {
+                if (this.x < canvas.width - this.width) {
+                    this.x += this.speed;
+                }
+            },
+            getCenter: function() {
+                return {
+                    x: this.x + this.width/2,
+                    y: this.y + this.height/2
+                };
+            }
+        };
+        
+        // Array asteroid
+        let asteroids = [];
+        
+        // Kelas Asteroid
+        class Asteroid {
+            constructor() {
+                this.size = Math.random() * 30 + 20;
+                this.x = Math.random() * (canvas.width - this.size);
+                this.y = -this.size;
+                this.speed = Math.random() * 3 + 2;
+                this.color = this.getRandomColor();
+                this.rotation = 0;
+                this.rotationSpeed = Math.random() * 0.05 - 0.025;
+            }
+            
+            getRandomColor() {
+                const colors = ['#ff6b6b', '#ff9a00', '#a1c4fd', '#4facfe', '#00f2fe'];
+                return colors[Math.floor(Math.random() * colors.length)];
+            }
+            
+            update() {
+                this.y += this.speed;
+                this.rotation += this.rotationSpeed;
+            }
+            
+            draw() {
+                ctx.save();
+                ctx.translate(this.x + this.size/2, this.y + this.size/2);
+                ctx.rotate(this.rotation);
+                
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                
+                // Membuat bentuk asteroid tidak beraturan
+                for (let i = 0; i < 8; i++) {
+                    const angle = (i / 8) * Math.PI * 2;
+                    const radius = this.size/2 * (0.7 + Math.random() * 0.3);
+                    const x = Math.cos(angle) * radius;
+                    const y = Math.sin(angle) * radius;
+                    
+                    if (i === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                }
+                
+                ctx.closePath();
+                ctx.fill();
+                
+                // Tambahkan kawah pada asteroid
+                ctx.fillStyle = '#0a1929';
+                for (let i = 0; i < 3; i++) {
+                    const craterX = Math.random() * this.size/2 - this.size/4;
+                    const craterY = Math.random() * this.size/2 - this.size/4;
+                    const craterRadius = Math.random() * 5 + 3;
+                    ctx.beginPath();
+                    ctx.arc(craterX, craterY, craterRadius, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                
+                ctx.restore();
+            }
+            
+            isOffScreen() {
+                return this.y > canvas.height;
+            }
+            
+            collidesWith(player) {
+                const playerCenter = player.getCenter();
+                const asteroidCenter = {
+                    x: this.x + this.size/2,
+                    y: this.y + this.size/2
+                };
+                
+                const distance = Math.sqrt(
+                    Math.pow(playerCenter.x - asteroidCenter.x, 2) + 
+                    Math.pow(playerCenter.y - asteroidCenter.y, 2)
+                );
+                
+                return distance < (player.width/2 + this.size/2);
+            }
+        }
+        
+        // Input keyboard
+        const keys = {};
+        
+        window.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+        });
+        
+        window.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+        });
+        
+        // Fungsi untuk mengontrol pemain
+        function handlePlayerInput() {
+            if (keys['ArrowLeft'] || keys['a'] || keys['A']) {
+                player.moveLeft();
+            }
+            if (keys['ArrowRight'] || keys['d'] || keys['D']) {
+                player.moveRight();
+            }
+        }
+        
+        // Fungsi untuk membuat asteroid baru
+        function spawnAsteroid() {
+            if (gameRunning && Math.random() < 0.03) {
+                asteroids.push(new Asteroid());
+            }
+        }
+        
+        // Fungsi untuk memperbarui semua asteroid
+        function updateAsteroids() {
+            for (let i = asteroids.length - 1; i >= 0; i--) {
+                asteroids[i].update();
+                
+                // Cek tabrakan dengan pemain
+                if (asteroids[i].collidesWith(player)) {
+                    asteroids.splice(i, 1);
+                    lives--;
+                    livesElement.textContent = lives;
+                    
+                    // Efek visual saat terkena
+                    player.color = '#ff6b6b';
+                    setTimeout(() => {
+                        player.color = '#4facfe';
+                    }, 200);
+                    
+                    if (lives <= 0) {
+                        endGame();
+                    }
+                    continue;
+                }
+                
+                // Hapus asteroid yang sudah keluar layar
+                if (asteroids[i].isOffScreen()) {
+                    asteroids.splice(i, 1);
+                    score += 10;
+                    scoreElement.textContent = score;
+                }
+            }
+        }
+        
+        // Fungsi untuk menggambar latar belakang
+        function drawBackground() {
+            // Gradien langit
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#0a1929');
+            gradient.addColorStop(1, '#0f2027');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Bintang-bintang
+            ctx.fillStyle = 'white';
+            for (let i = 0; i < 100; i++) {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height;
+                const radius = Math.random() * 1.5;
+                ctx.beginPath();
+                ctx.arc(x, y, radius, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+        
+        // Fungsi utama game loop
+        function gameUpdate(currentTime) {
+            if (!gameRunning) return;
+            
+            const deltaTime = currentTime - lastTime;
+            lastTime = currentTime;
+            
+            // Bersihkan canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Gambar latar belakang
+            drawBackground();
+            
+            // Tangani input pemain
+            handlePlayerInput();
+            
+            // Spawn asteroid baru
+            spawnAsteroid();
+            
+            // Update dan gambar asteroid
+            updateAsteroids();
+            asteroids.forEach(asteroid => asteroid.draw());
+            
+            // Gambar pemain
+            player.draw();
+            
+            // Lanjutkan game loop
+            gameLoop = requestAnimationFrame(gameUpdate);
+        }
+        
+        // Fungsi untuk memulai game
+        function startGame() {
+            if (gameRunning) return;
+            
+            // Reset variabel game
+            score = 0;
+            lives = 3;
+            asteroids = [];
+            
+            // Update tampilan
+            scoreElement.textContent = score;
+            livesElement.textContent = lives;
+            gameOverScreen.style.display = 'none';
+            
+            // Setel posisi pemain
+            player.x = canvas.width / 2 - player.width/2;
+            
+            // Mulai game loop
+            gameRunning = true;
+            lastTime = performance.now();
+            gameLoop = requestAnimationFrame(gameUpdate);
+            
+            // Update tombol
+            startBtn.textContent = "Game Berjalan";
+            startBtn.disabled = true;
+            startBtn.style.opacity = "0.7";
+        }
+        
+        // Fungsi untuk mengakhiri game
+        function endGame() {
+            gameRunning = false;
+            cancelAnimationFrame(gameLoop);
+            
+            // Tampilkan layar game over
+            finalScoreElement.textContent = `Skor Akhir: ${score}`;
+            gameOverScreen.style.display = 'flex';
+            
+            // Update tombol
+            startBtn.textContent = "Mulai Game";
+            startBtn.disabled = false;
+            startBtn.style.opacity = "1";
+        }
+        
+        // Fungsi untuk mereset game
+        function resetGame() {
+            gameRunning = false;
+            cancelAnimationFrame(gameLoop);
+            
+            // Reset variabel game
+            score = 0;
+            lives = 3;
+            asteroids = [];
+            
+            // Update tampilan
+            scoreElement.textContent = score;
+            livesElement.textContent = lives;
+            gameOverScreen.style.display = 'none';
+            
+            // Setel posisi pemain
+            player.x = canvas.width / 2 - player.width/2;
+            
+            // Bersihkan canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawBackground();
+            player.draw();
+            
+            // Update tombol
+            startBtn.textContent = "Mulai Game";
+            startBtn.disabled = false;
+            startBtn.style.opacity = "1";
+        }
+        
+        // Event listener untuk tombol
+        startBtn.addEventListener('click', startGame);
+        resetBtn.addEventListener('click', resetGame);
+        restartBtn.addEventListener('click', startGame);
+        
+        // Inisialisasi game
+        drawBackground();
+        player.draw();
+        
+        // Tombol keyboard untuk memulai/menghentikan game
+        document.addEventListener('keydown', (e) => {
+            if (e.key === ' ' && !gameRunning) {
+                startGame();
+            } else if (e.key === 'Escape' && gameRunning) {
+                endGame();
+            }
+        });
+        
+        // Info kontrol tambahan
+        console.log("Kontrol Game:");
+        console.log("- A/D atau panah kiri/kanan: Gerakkan pesawat");
+        console.log("- Spasi: Mulai game");
+        console.log("- ESC: Akhiri game");
+    </script>
+</body>
+</html>
